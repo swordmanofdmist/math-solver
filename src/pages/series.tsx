@@ -1,4 +1,5 @@
 import MathInput from "@/components/MathInput";
+import SolverNavigation from "@/components/SolverNavigation";
 import Head from "next/head";
 import type { FormEvent } from "react";
 import { useState } from "react";
@@ -81,6 +82,11 @@ export default function SeriesPage() {
           be checked.
         </p>
       </section>
+
+      <SolverNavigation
+        previous={{ href: "/integrals", label: "Integrals" }}
+        next={{ href: "/derivatives", label: "Derivatives" }}
+      />
 
       <form className="solver-form" onSubmit={handleSubmit}>
         <MathInput

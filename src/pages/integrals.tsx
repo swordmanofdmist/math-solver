@@ -1,4 +1,5 @@
 import MathInput from "@/components/MathInput";
+import SolverNavigation from "@/components/SolverNavigation";
 import Head from "next/head";
 import type { FormEvent } from "react";
 import { useState } from "react";
@@ -96,6 +97,11 @@ export default function IntegralsPage() {
           definite integral.
         </p>
       </section>
+
+      <SolverNavigation
+        previous={{ href: "/derivatives", label: "Derivatives" }}
+        next={{ href: "/series", label: "Series" }}
+      />
 
       <form className="solver-form" onSubmit={handleSubmit}>
         <MathInput

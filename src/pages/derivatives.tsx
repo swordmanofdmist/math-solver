@@ -1,4 +1,5 @@
 import MathInput from "@/components/MathInput";
+import SolverNavigation from "@/components/SolverNavigation";
 import Head from "next/head";
 import type { FormEvent } from "react";
 import { useState } from "react";
@@ -82,6 +83,11 @@ export default function DerivativesPage() {
           Enter a function and choose which derivative order should be solved.
         </p>
       </section>
+
+      <SolverNavigation
+        previous={{ href: "/series", label: "Series" }}
+        next={{ href: "/integrals", label: "Integrals" }}
+      />
 
       <form className="solver-form" onSubmit={handleSubmit}>
         <MathInput
