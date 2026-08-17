@@ -3,9 +3,8 @@ import {
   normalizeVariable,
   restoreVariable,
 } from "@/lib/newton";
-import { spawn } from "child_process";
+import { evaluate, format, subtract } from "mathjs";
 import type { NextApiRequest, NextApiResponse } from "next";
-import path from "path";
 
 type IntegralResponse = {
   result?: string;
@@ -50,7 +49,7 @@ export default async function handler(
     const antiderivative = await callNewton("integrate", normalizedExpression);
     const result =
       integralType === "definite"
-        ? await evaluateAntiderivative(
+        ? evaluateDefiniteIntegral(
             antiderivative,
             lowerBound || "",
             upperBound || "",
@@ -68,65 +67,14 @@ export default async function handler(
   }
 }
 
-function evaluateAntiderivative(
-  expression: string,
+function evaluateDefiniteIntegral(
+  antiderivative: string,
   lowerBound: string,
   upperBound: string,
 ) {
-  return new Promise<string>((resolve, reject) => {
-    const scriptPath = path.join(
-      process.cwd(),
-      "src",
-      "scripts",
-      "evaluate_antiderivative.py",
-    );
-    const pythonPath = path.join(process.cwd(), ".python-libs");
-    const python = spawn("python", [scriptPath], {
-      env: {
-        ...process.env,
-        PYTHONPATH: pythonPath,
-      },
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+  const expression = antiderivative.replace(/\s*\+\s*C\s*$/, "");
+  const upperValue = evaluate(expression, { x: evaluate(upperBound) });
+  const lowerValue = evaluate(expression, { x: evaluate(lowerBound) });
 
-    let stdout = "";
-    let stderr = "";
-
-    python.stdout.on("data", (chunk: Buffer) => {
-      stdout += chunk.toString();
-    });
-
-    python.stderr.on("data", (chunk: Buffer) => {
-      stderr += chunk.toString();
-    });
-
-    python.stdin.write(
-      JSON.stringify({
-        expression,
-        variable: "x",
-        lowerBound,
-        upperBound,
-      }),
-    );
-    python.stdin.end();
-
-    python.on("close", (code) => {
-      if (code !== 0) {
-        reject(new Error(stderr.trim() || "Could not evaluate the bounds."));
-        return;
-      }
-
-      try {
-        const data = JSON.parse(stdout) as { result?: string };
-        if (!data.result) {
-          reject(new Error("Could not evaluate the bounds."));
-          return;
-        }
-
-        resolve(data.result);
-      } catch {
-        reject(new Error("Could not parse the bound evaluation."));
-      }
-    });
-  });
+  return format(subtract(upperValue, lowerValue), { precision: 14 });
 }
