@@ -1,40 +1,84 @@
 import MathInput from "@/components/MathInput";
+import RecentEquationsNote from "@/components/RecentEquationsNote";
 import SolverNavigation from "@/components/SolverNavigation";
+import {
+  readRecentEquations,
+  rememberRecentEquation,
+} from "@/lib/recentEquations";
 import Head from "next/head";
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const SERIES_RECENT_KEY = "math-solver:recent-series";
+
+const seriesExamples = [
+  { expression: "1 / n^2", variable: "n", startValue: "1" },
+  { expression: "1 / n", variable: "n", startValue: "1" },
+  { expression: "1 / 2^n", variable: "n", startValue: "1" },
+  { expression: "n / (n^3 + 1)", variable: "n", startValue: "1" },
+];
 
 export default function SeriesPage() {
   const [expression, setExpression] = useState("");
   const [variable, setVariable] = useState("n");
   const [startValue, setStartValue] = useState("1");
+  const [recentEquations, setRecentEquations] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setRecentEquations(readRecentEquations(SERIES_RECENT_KEY));
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  function handleGenerateExample() {
+    const example =
+      seriesExamples[Math.floor(Math.random() * seriesExamples.length)];
+
+    setExpression(example.expression);
+    setVariable(example.variable);
+    setStartValue(example.startValue);
+    setError("");
+    setResult("");
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setResult("");
     setLoading(true);
+    const trimmedExpression = expression.trim();
+    const trimmedVariable = variable.trim();
+    const trimmedStartValue = startValue.trim();
 
-    if (!expression.trim()) {
+    if (!trimmedExpression) {
       setError("Enter a series term before analyzing.");
       setLoading(false);
       return;
     }
 
-    if (!variable.trim()) {
+    if (!trimmedVariable) {
       setError("Enter the index variable.");
       setLoading(false);
       return;
     }
 
-    if (!startValue.trim()) {
+    if (!trimmedStartValue) {
       setError("Enter the starting index value.");
       setLoading(false);
       return;
     }
+
+    setRecentEquations(
+      rememberRecentEquation(
+        SERIES_RECENT_KEY,
+        `sum of ${trimmedExpression} from ${trimmedVariable} = ${trimmedStartValue} to infinity`,
+      ),
+    );
 
     try {
       const response = await fetch("/api/series", {
@@ -43,9 +87,9 @@ export default function SeriesPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          expression: expression.trim(),
-          variable: variable.trim(),
-          startValue: startValue.trim(),
+          expression: trimmedExpression,
+          variable: trimmedVariable,
+          startValue: trimmedStartValue,
         }),
       });
       const data = (await response.json()) as {
@@ -58,7 +102,7 @@ export default function SeriesPage() {
       }
 
       setResult(
-        `Sum of ${expression.trim()} from ${variable.trim()} = ${startValue.trim()} to infinity: ${data.result}`,
+        `Sum of ${trimmedExpression} from ${trimmedVariable} = ${trimmedStartValue} to infinity: ${data.result}`,
       );
     } catch (error) {
       setError(
@@ -87,6 +131,13 @@ export default function SeriesPage() {
         previous={{ href: "/integrals", label: "Integrals" }}
         next={{ href: "/derivatives", label: "Derivatives" }}
       />
+
+      <section className="solver-helper-row">
+        <button type="button" className="example-button" onClick={handleGenerateExample}>
+          Generate example
+        </button>
+        <RecentEquationsNote equations={recentEquations} />
+      </section>
 
       <form className="solver-form" onSubmit={handleSubmit}>
         <MathInput

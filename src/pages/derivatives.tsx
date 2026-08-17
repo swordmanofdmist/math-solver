@@ -1,16 +1,50 @@
 import MathInput from "@/components/MathInput";
+import RecentEquationsNote from "@/components/RecentEquationsNote";
 import SolverNavigation from "@/components/SolverNavigation";
+import {
+  readRecentEquations,
+  rememberRecentEquation,
+} from "@/lib/recentEquations";
 import Head from "next/head";
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const DERIVATIVE_RECENT_KEY = "math-solver:recent-derivatives";
+
+const derivativeExamples = [
+  { expression: "x^3 + 2x", variable: "x", order: "1" },
+  { expression: "sin(x) + x^2", variable: "x", order: "1" },
+  { expression: "x^4 - 3x^2 + 7", variable: "x", order: "2" },
+  { expression: "e^x + 5x", variable: "x", order: "1" },
+];
 
 export default function DerivativesPage() {
   const [expression, setExpression] = useState("");
   const [variable, setVariable] = useState("x");
   const [order, setOrder] = useState("1");
+  const [recentEquations, setRecentEquations] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setRecentEquations(readRecentEquations(DERIVATIVE_RECENT_KEY));
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  function handleGenerateExample() {
+    const example =
+      derivativeExamples[Math.floor(Math.random() * derivativeExamples.length)];
+
+    setExpression(example.expression);
+    setVariable(example.variable);
+    setOrder(example.order);
+    setError("");
+    setResult("");
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -19,14 +53,16 @@ export default function DerivativesPage() {
     setLoading(true);
 
     const parsedOrder = Number(order);
+    const trimmedExpression = expression.trim();
+    const trimmedVariable = variable.trim();
 
-    if (!expression.trim()) {
+    if (!trimmedExpression) {
       setError("Enter a function before solving.");
       setLoading(false);
       return;
     }
 
-    if (!variable.trim()) {
+    if (!trimmedVariable) {
       setError("Enter the variable to differentiate by.");
       setLoading(false);
       return;
@@ -38,6 +74,13 @@ export default function DerivativesPage() {
       return;
     }
 
+    setRecentEquations(
+      rememberRecentEquation(
+        DERIVATIVE_RECENT_KEY,
+        `d^${parsedOrder}/d${trimmedVariable}^${parsedOrder} (${trimmedExpression})`,
+      ),
+    );
+
     try {
       const response = await fetch("/api/derivative", {
         method: "POST",
@@ -45,8 +88,8 @@ export default function DerivativesPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          expression: expression.trim(),
-          variable: variable.trim(),
+          expression: trimmedExpression,
+          variable: trimmedVariable,
           order: parsedOrder,
         }),
       });
@@ -60,7 +103,7 @@ export default function DerivativesPage() {
       }
 
       setResult(
-        `d^${parsedOrder}/d${variable.trim()}^${parsedOrder} (${expression.trim()}) = ${data.result}`,
+        `d^${parsedOrder}/d${trimmedVariable}^${parsedOrder} (${trimmedExpression}) = ${data.result}`,
       );
     } catch (error) {
       setError(
@@ -88,6 +131,13 @@ export default function DerivativesPage() {
         previous={{ href: "/series", label: "Series" }}
         next={{ href: "/integrals", label: "Integrals" }}
       />
+
+      <section className="solver-helper-row">
+        <button type="button" className="example-button" onClick={handleGenerateExample}>
+          Generate example
+        </button>
+        <RecentEquationsNote equations={recentEquations} />
+      </section>
 
       <form className="solver-form" onSubmit={handleSubmit}>
         <MathInput

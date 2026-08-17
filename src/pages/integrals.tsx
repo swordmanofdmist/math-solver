@@ -1,10 +1,48 @@
 import MathInput from "@/components/MathInput";
+import RecentEquationsNote from "@/components/RecentEquationsNote";
 import SolverNavigation from "@/components/SolverNavigation";
+import {
+  readRecentEquations,
+  rememberRecentEquation,
+} from "@/lib/recentEquations";
 import Head from "next/head";
 import type { FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type IntegralType = "indefinite" | "definite";
+
+const INTEGRAL_RECENT_KEY = "math-solver:recent-integrals";
+
+const integralExamples = [
+  {
+    expression: "x^2 + sin(x)",
+    variable: "x",
+    integralType: "indefinite" as const,
+    lowerBound: "",
+    upperBound: "",
+  },
+  {
+    expression: "2x + 3",
+    variable: "x",
+    integralType: "definite" as const,
+    lowerBound: "0",
+    upperBound: "4",
+  },
+  {
+    expression: "cos(x)",
+    variable: "x",
+    integralType: "indefinite" as const,
+    lowerBound: "",
+    upperBound: "",
+  },
+  {
+    expression: "x^3",
+    variable: "x",
+    integralType: "definite" as const,
+    lowerBound: "1",
+    upperBound: "2",
+  },
+];
 
 export default function IntegralsPage() {
   const [expression, setExpression] = useState("");
@@ -13,23 +51,49 @@ export default function IntegralsPage() {
     useState<IntegralType>("indefinite");
   const [lowerBound, setLowerBound] = useState("");
   const [upperBound, setUpperBound] = useState("");
+  const [recentEquations, setRecentEquations] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setRecentEquations(readRecentEquations(INTEGRAL_RECENT_KEY));
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  function handleGenerateExample() {
+    const example =
+      integralExamples[Math.floor(Math.random() * integralExamples.length)];
+
+    setExpression(example.expression);
+    setVariable(example.variable);
+    setIntegralType(example.integralType);
+    setLowerBound(example.lowerBound);
+    setUpperBound(example.upperBound);
+    setError("");
+    setResult("");
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setResult("");
     setLoading(true);
+    const trimmedExpression = expression.trim();
+    const trimmedVariable = variable.trim();
+    const trimmedLowerBound = lowerBound.trim();
+    const trimmedUpperBound = upperBound.trim();
 
-    if (!expression.trim()) {
+    if (!trimmedExpression) {
       setError("Enter a function before solving.");
       setLoading(false);
       return;
     }
 
-    if (!variable.trim()) {
+    if (!trimmedVariable) {
       setError("Enter the variable to integrate by.");
       setLoading(false);
       return;
@@ -37,12 +101,24 @@ export default function IntegralsPage() {
 
     if (
       integralType === "definite" &&
-      (!lowerBound.trim() || !upperBound.trim())
+      (!trimmedLowerBound || !trimmedUpperBound)
     ) {
       setError("Enter both bounds for a definite integral.");
       setLoading(false);
       return;
     }
+
+    const bounds =
+      integralType === "definite"
+        ? ` from ${trimmedLowerBound} to ${trimmedUpperBound}`
+        : "";
+
+    setRecentEquations(
+      rememberRecentEquation(
+        INTEGRAL_RECENT_KEY,
+        `${integralType} integral of ${trimmedExpression} d${trimmedVariable}${bounds}`,
+      ),
+    );
 
     try {
       const response = await fetch("/api/integral", {
@@ -51,11 +127,11 @@ export default function IntegralsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          expression: expression.trim(),
-          variable: variable.trim(),
+          expression: trimmedExpression,
+          variable: trimmedVariable,
           integralType,
-          lowerBound: lowerBound.trim(),
-          upperBound: upperBound.trim(),
+          lowerBound: trimmedLowerBound,
+          upperBound: trimmedUpperBound,
         }),
       });
       const data = (await response.json()) as {
@@ -67,13 +143,8 @@ export default function IntegralsPage() {
         throw new Error(data.error || "Could not solve the integral.");
       }
 
-      const bounds =
-        integralType === "definite"
-          ? ` from ${lowerBound.trim()} to ${upperBound.trim()}`
-          : "";
-
       setResult(
-        `${integralType} integral of ${expression.trim()} with respect to ${variable.trim()}${bounds} = ${data.result}`,
+        `${integralType} integral of ${trimmedExpression} with respect to ${trimmedVariable}${bounds} = ${data.result}`,
       );
     } catch (error) {
       setError(
@@ -102,6 +173,13 @@ export default function IntegralsPage() {
         previous={{ href: "/derivatives", label: "Derivatives" }}
         next={{ href: "/series", label: "Series" }}
       />
+
+      <section className="solver-helper-row">
+        <button type="button" className="example-button" onClick={handleGenerateExample}>
+          Generate example
+        </button>
+        <RecentEquationsNote equations={recentEquations} />
+      </section>
 
       <form className="solver-form" onSubmit={handleSubmit}>
         <MathInput

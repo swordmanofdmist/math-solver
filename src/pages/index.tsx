@@ -9,7 +9,7 @@ const operationDefinitions = [
     sourceHref: "https://www.britannica.com/science/calculus-mathematics",
     sourceLabel: "Encyclopaedia Britannica, calculus",
     description:
-      "A derivative describes a function's rate of change. Britannica explains differential calculus as the part of calculus concerned with instantaneous rates of change and the slope of a curve at a point.",
+      "A derivative describes how quickly a function changes at a specific point, which makes it useful for slopes, velocity, optimization, and sensitivity. In this app, the derivative solver is meant for expressions where you want to see how one variable responds as another variable moves. Britannica explains differential calculus as the part of calculus concerned with instantaneous rates of change and the slope of a curve at a point. Use this operation when the question is about change, steepness, tangent lines, or finding where a function increases and decreases.",
   },
   {
     title: "Integral",
@@ -18,7 +18,7 @@ const operationDefinitions = [
     sourceHref: "https://www.britannica.com/science/calculus-mathematics",
     sourceLabel: "Encyclopaedia Britannica, calculus",
     description:
-      "An integral represents accumulation. Britannica describes integral calculus as summing infinitely many small parts to determine a whole, such as the area under a curve.",
+      "An integral represents accumulation across an interval, so it is the operation to reach for when small pieces need to be added into a total. The integral solver supports the kind of thinking used for area under a curve, displacement from velocity, total growth, and other continuous quantities. Britannica describes integral calculus as summing infinitely many small parts to determine a whole, such as the area under a curve. Use this operation when the problem asks for a total amount, an antiderivative, or the effect of a function over a range.",
   },
   {
     title: "Series",
@@ -28,7 +28,7 @@ const operationDefinitions = [
       "https://en.wikisource.org/wiki/1911_Encyclop%C3%A6dia_Britannica/Series",
     sourceLabel: "Encyclopaedia Britannica (1911), Series",
     description:
-      "A mathematical series is an ordered succession of quantities. For infinite series, Britannica describes convergence as the partial sums approaching a definite finite limit.",
+      "A mathematical series adds the terms of a sequence, often to understand whether infinitely many values still settle toward a finite answer. The series solver is designed for expressions with an index such as n, where the main question is whether the running sum stabilizes or grows without bound. For infinite series, Britannica describes convergence as the partial sums approaching a definite finite limit. Use this operation when the problem is about convergence, divergence, partial sums, or recognizing patterns in repeated addition.",
   },
 ];
 

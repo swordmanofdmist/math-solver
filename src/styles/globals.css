@@ -130,6 +130,22 @@ button:disabled {
   animation: page-enter 280ms ease both;
 }
 
+.site-footer {
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto 18px;
+  border-top: 1px solid var(--soft-line);
+  padding: 14px 0 0;
+}
+
+.site-footer p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.78;
+  text-align: center;
+}
+
 .page-header {
   display: grid;
   justify-items: start;
@@ -402,6 +418,62 @@ button:disabled {
   margin-bottom: 22px;
 }
 
+.solver-helper-row {
+  display: grid;
+  grid-template-columns: max-content minmax(220px, 320px);
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.example-button {
+  border-color: rgba(8, 7, 6, 0.18);
+  background: #ffffff;
+  color: var(--ink);
+}
+
+.example-button:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: #ffffff;
+  box-shadow: 0 12px 24px rgba(8, 7, 6, 0.12);
+}
+
+.sticky-note {
+  justify-self: end;
+  width: 100%;
+  border: 1px solid rgba(201, 179, 88, 0.52);
+  border-radius: 4px;
+  background: #fff5b8;
+  box-shadow: 0 10px 24px rgba(69, 55, 51, 0.1);
+  color: var(--brown);
+  padding: 14px 16px;
+  transform: rotate(-0.8deg);
+}
+
+.sticky-note h2 {
+  margin: 0 0 9px;
+  color: var(--ink);
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.sticky-note ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.sticky-note li,
+.sticky-note p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -568,6 +640,11 @@ button:disabled {
     padding: 24px 16px 44px;
   }
 
+  .site-footer {
+    width: calc(100% - 32px);
+    margin-bottom: 16px;
+  }
+
   .page-header,
   .home-hero {
     justify-items: start;
@@ -585,6 +662,14 @@ button:disabled {
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .solver-helper-row {
+    grid-template-columns: 1fr;
+  }
+
+  .sticky-note {
+    justify-self: stretch;
   }
 
   button {
