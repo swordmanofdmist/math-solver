@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 type SolverLink = {
   href: string;
@@ -14,8 +15,10 @@ export default function SolverNavigation({
   previous,
   next,
 }: SolverNavigationProps) {
+  const { t } = useI18n();
+
   return (
-    <nav className="solver-side-nav" aria-label="Switch solver">
+    <nav className="solver-side-nav" aria-label={t.common.switchSolver}>
       <Link className="solver-side-button solver-side-button-left" href={previous.href}>
         <span aria-hidden="true">&larr;</span>
         <span>{previous.label}</span>

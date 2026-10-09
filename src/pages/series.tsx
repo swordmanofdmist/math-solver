@@ -1,24 +1,21 @@
 import MathInput from "@/components/MathInput";
 import RecentEquationsNote from "@/components/RecentEquationsNote";
+import ResultPanel from "@/components/ResultPanel";
 import SolverNavigation from "@/components/SolverNavigation";
 import {
   readRecentEquations,
   rememberRecentEquation,
 } from "@/lib/recentEquations";
+import { useI18n } from "@/lib/i18n";
+import { pickRandomExample, seriesExamples } from "@/lib/solverExamples";
 import Head from "next/head";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 
 const SERIES_RECENT_KEY = "math-solver:recent-series";
 
-const seriesExamples = [
-  { expression: "1 / n^2", variable: "n", startValue: "1" },
-  { expression: "1 / n", variable: "n", startValue: "1" },
-  { expression: "1 / 2^n", variable: "n", startValue: "1" },
-  { expression: "n / (n^3 + 1)", variable: "n", startValue: "1" },
-];
-
 export default function SeriesPage() {
+  const { t } = useI18n();
   const [expression, setExpression] = useState("");
   const [variable, setVariable] = useState("n");
   const [startValue, setStartValue] = useState("1");
@@ -36,8 +33,7 @@ export default function SeriesPage() {
   }, []);
 
   function handleGenerateExample() {
-    const example =
-      seriesExamples[Math.floor(Math.random() * seriesExamples.length)];
+    const example = pickRandomExample(seriesExamples, expression);
 
     setExpression(example.expression);
     setVariable(example.variable);
@@ -56,19 +52,19 @@ export default function SeriesPage() {
     const trimmedStartValue = startValue.trim();
 
     if (!trimmedExpression) {
-      setError("Enter a series term before analyzing.");
+      setError(t.seriesPage.errors.expression);
       setLoading(false);
       return;
     }
 
     if (!trimmedVariable) {
-      setError("Enter the index variable.");
+      setError(t.seriesPage.errors.variable);
       setLoading(false);
       return;
     }
 
     if (!trimmedStartValue) {
-      setError("Enter the starting index value.");
+      setError(t.seriesPage.errors.startValue);
       setLoading(false);
       return;
     }
@@ -76,7 +72,11 @@ export default function SeriesPage() {
     setRecentEquations(
       rememberRecentEquation(
         SERIES_RECENT_KEY,
-        `sum of ${trimmedExpression} from ${trimmedVariable} = ${trimmedStartValue} to infinity`,
+        t.seriesPage.recentText(
+          trimmedExpression,
+          trimmedVariable,
+          trimmedStartValue,
+        ),
       ),
     );
 
@@ -98,16 +98,17 @@ export default function SeriesPage() {
       };
 
       if (!response.ok || !data.result) {
-        throw new Error(data.error || "Could not analyze the series.");
+        throw new Error(t.seriesPage.errors.analyze);
       }
 
-      setResult(
-        `Sum of ${trimmedExpression} from ${trimmedVariable} = ${trimmedStartValue} to infinity: ${data.result}`,
-      );
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Could not analyze the series.",
-      );
+      setResult(t.seriesPage.resultText(
+        trimmedExpression,
+        trimmedVariable,
+        trimmedStartValue,
+        data.result,
+      ));
+    } catch {
+      setError(t.seriesPage.errors.analyze);
     } finally {
       setLoading(false);
     }
@@ -116,25 +117,22 @@ export default function SeriesPage() {
   return (
     <>
       <Head>
-        <title>Series Solver | Math Solver</title>
+        <title>{t.seriesPage.pageTitle}</title>
       </Head>
 
       <section className="page-header">
-        <h1>Series Solver</h1>
-        <p>
-          Enter the general term of a series and choose how convergence should
-          be checked.
-        </p>
+        <h1>{t.seriesPage.heading}</h1>
+        <p>{t.seriesPage.intro}</p>
       </section>
 
       <SolverNavigation
-        previous={{ href: "/integrals", label: "Integrals" }}
-        next={{ href: "/derivatives", label: "Derivatives" }}
+        previous={{ href: "/integrals", label: t.common.integrals }}
+        next={{ href: "/derivatives", label: t.common.derivatives }}
       />
 
       <section className="solver-helper-row">
         <button type="button" className="example-button" onClick={handleGenerateExample}>
-          Generate example
+          {t.common.generateExample}
         </button>
         <RecentEquationsNote equations={recentEquations} />
       </section>
@@ -142,17 +140,17 @@ export default function SeriesPage() {
       <form className="solver-form" onSubmit={handleSubmit}>
         <MathInput
           id="series-expression"
-          label="Series term"
+          label={t.seriesPage.term}
           value={expression}
           onChange={(event) => setExpression(event.target.value)}
-          placeholder="Example: 1 / n^2"
+          placeholder={`${t.common.example}: 1 / n^2`}
           required
         />
 
         <div className="form-row">
           <MathInput
             id="series-variable"
-            label="Index variable"
+            label={t.seriesPage.indexVariable}
             value={variable}
             onChange={(event) => setVariable(event.target.value)}
             placeholder="n"
@@ -160,7 +158,7 @@ export default function SeriesPage() {
           />
           <MathInput
             id="series-start"
-            label="Start value"
+            label={t.seriesPage.startValue}
             value={startValue}
             onChange={(event) => setStartValue(event.target.value)}
             placeholder="1"
@@ -171,16 +169,11 @@ export default function SeriesPage() {
         {error && <p className="error-message">{error}</p>}
 
         <button type="submit" disabled={loading}>
-          {loading ? "Analyzing..." : "Analyze series"}
+          {loading ? t.seriesPage.analyzing : t.seriesPage.analyze}
         </button>
       </form>
 
-      {result && (
-        <section className="result-panel" aria-live="polite">
-          <h2>Result</h2>
-          <p>{result}</p>
-        </section>
-      )}
+      {result && <ResultPanel result={result} />}
     </>
   );
 }

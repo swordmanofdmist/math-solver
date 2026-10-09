@@ -1,10 +1,13 @@
 import MathInput from "@/components/MathInput";
 import RecentEquationsNote from "@/components/RecentEquationsNote";
+import ResultPanel from "@/components/ResultPanel";
 import SolverNavigation from "@/components/SolverNavigation";
 import {
   readRecentEquations,
   rememberRecentEquation,
 } from "@/lib/recentEquations";
+import { useI18n } from "@/lib/i18n";
+import { integralExamples, pickRandomExample } from "@/lib/solverExamples";
 import Head from "next/head";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
@@ -13,38 +16,8 @@ type IntegralType = "indefinite" | "definite";
 
 const INTEGRAL_RECENT_KEY = "math-solver:recent-integrals";
 
-const integralExamples = [
-  {
-    expression: "x^2 + sin(x)",
-    variable: "x",
-    integralType: "indefinite" as const,
-    lowerBound: "",
-    upperBound: "",
-  },
-  {
-    expression: "2x + 3",
-    variable: "x",
-    integralType: "definite" as const,
-    lowerBound: "0",
-    upperBound: "4",
-  },
-  {
-    expression: "cos(x)",
-    variable: "x",
-    integralType: "indefinite" as const,
-    lowerBound: "",
-    upperBound: "",
-  },
-  {
-    expression: "x^3",
-    variable: "x",
-    integralType: "definite" as const,
-    lowerBound: "1",
-    upperBound: "2",
-  },
-];
-
 export default function IntegralsPage() {
+  const { t } = useI18n();
   const [expression, setExpression] = useState("");
   const [variable, setVariable] = useState("x");
   const [integralType, setIntegralType] =
@@ -65,8 +38,7 @@ export default function IntegralsPage() {
   }, []);
 
   function handleGenerateExample() {
-    const example =
-      integralExamples[Math.floor(Math.random() * integralExamples.length)];
+    const example = pickRandomExample(integralExamples, expression);
 
     setExpression(example.expression);
     setVariable(example.variable);
@@ -88,13 +60,13 @@ export default function IntegralsPage() {
     const trimmedUpperBound = upperBound.trim();
 
     if (!trimmedExpression) {
-      setError("Enter a function before solving.");
+      setError(t.integral.errors.expression);
       setLoading(false);
       return;
     }
 
     if (!trimmedVariable) {
-      setError("Enter the variable to integrate by.");
+      setError(t.integral.errors.variable);
       setLoading(false);
       return;
     }
@@ -103,20 +75,26 @@ export default function IntegralsPage() {
       integralType === "definite" &&
       (!trimmedLowerBound || !trimmedUpperBound)
     ) {
-      setError("Enter both bounds for a definite integral.");
+      setError(t.integral.errors.bounds);
       setLoading(false);
       return;
     }
 
-    const bounds =
+    const typeLabel =
       integralType === "definite"
-        ? ` from ${trimmedLowerBound} to ${trimmedUpperBound}`
-        : "";
+        ? t.integral.definite
+        : t.integral.indefinite;
 
     setRecentEquations(
       rememberRecentEquation(
         INTEGRAL_RECENT_KEY,
-        `${integralType} integral of ${trimmedExpression} d${trimmedVariable}${bounds}`,
+        t.integral.recentText(
+          typeLabel,
+          trimmedExpression,
+          trimmedVariable,
+          integralType === "definite" ? trimmedLowerBound : "",
+          integralType === "definite" ? trimmedUpperBound : "",
+        ),
       ),
     );
 
@@ -140,16 +118,19 @@ export default function IntegralsPage() {
       };
 
       if (!response.ok || !data.result) {
-        throw new Error(data.error || "Could not solve the integral.");
+        throw new Error(t.integral.errors.solve);
       }
 
-      setResult(
-        `${integralType} integral of ${trimmedExpression} with respect to ${trimmedVariable}${bounds} = ${data.result}`,
-      );
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Could not solve the integral.",
-      );
+      setResult(t.integral.resultText(
+        typeLabel,
+        trimmedExpression,
+        trimmedVariable,
+        integralType === "definite" ? trimmedLowerBound : "",
+        integralType === "definite" ? trimmedUpperBound : "",
+        data.result,
+      ));
+    } catch {
+      setError(t.integral.errors.solve);
     } finally {
       setLoading(false);
     }
@@ -158,25 +139,22 @@ export default function IntegralsPage() {
   return (
     <>
       <Head>
-        <title>Integral Solver | Math Solver</title>
+        <title>{t.integral.pageTitle}</title>
       </Head>
 
       <section className="page-header">
-        <h1>Integral Solver</h1>
-        <p>
-          Enter a function and choose whether the problem is an indefinite or
-          definite integral.
-        </p>
+        <h1>{t.integral.heading}</h1>
+        <p>{t.integral.intro}</p>
       </section>
 
       <SolverNavigation
-        previous={{ href: "/derivatives", label: "Derivatives" }}
-        next={{ href: "/series", label: "Series" }}
+        previous={{ href: "/derivatives", label: t.common.derivatives }}
+        next={{ href: "/series", label: t.common.series }}
       />
 
       <section className="solver-helper-row">
         <button type="button" className="example-button" onClick={handleGenerateExample}>
-          Generate example
+          {t.common.generateExample}
         </button>
         <RecentEquationsNote equations={recentEquations} />
       </section>
@@ -184,16 +162,16 @@ export default function IntegralsPage() {
       <form className="solver-form" onSubmit={handleSubmit}>
         <MathInput
           id="integral-expression"
-          label="Function"
+          label={t.common.function}
           value={expression}
           onChange={(event) => setExpression(event.target.value)}
-          placeholder="Example: x^2 + sin(x)"
+          placeholder={`${t.common.example}: x^2 + sin(x)`}
           required
         />
 
         <MathInput
           id="integral-variable"
-          label="Variable"
+          label={t.common.variable}
           value={variable}
           onChange={(event) => setVariable(event.target.value)}
           placeholder="x"
@@ -201,7 +179,7 @@ export default function IntegralsPage() {
         />
 
         <fieldset className="radio-group">
-          <legend>Integral type</legend>
+          <legend>{t.integral.type}</legend>
           <label>
             <input
               type="radio"
@@ -210,7 +188,7 @@ export default function IntegralsPage() {
               checked={integralType === "indefinite"}
               onChange={() => setIntegralType("indefinite")}
             />
-            Indefinite
+            {t.integral.indefinite}
           </label>
           <label>
             <input
@@ -220,7 +198,7 @@ export default function IntegralsPage() {
               checked={integralType === "definite"}
               onChange={() => setIntegralType("definite")}
             />
-            Definite
+            {t.integral.definite}
           </label>
         </fieldset>
 
@@ -228,7 +206,7 @@ export default function IntegralsPage() {
           <div className="form-row">
             <MathInput
               id="lower-bound"
-              label="Lower bound"
+              label={t.integral.lowerBound}
               value={lowerBound}
               onChange={(event) => setLowerBound(event.target.value)}
               placeholder="0"
@@ -236,7 +214,7 @@ export default function IntegralsPage() {
             />
             <MathInput
               id="upper-bound"
-              label="Upper bound"
+              label={t.integral.upperBound}
               value={upperBound}
               onChange={(event) => setUpperBound(event.target.value)}
               placeholder="1"
@@ -248,16 +226,11 @@ export default function IntegralsPage() {
         {error && <p className="error-message">{error}</p>}
 
         <button type="submit" disabled={loading}>
-          {loading ? "Solving..." : "Solve integral"}
+          {loading ? t.integral.solving : t.integral.solve}
         </button>
       </form>
 
-      {result && (
-        <section className="result-panel" aria-live="polite">
-          <h2>Result</h2>
-          <p>{result}</p>
-        </section>
-      )}
+      {result && <ResultPanel result={result} />}
     </>
   );
 }

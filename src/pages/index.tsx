@@ -1,100 +1,91 @@
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
-const operationDefinitions = [
+const operationLinks = [
   {
-    title: "Derivative",
-    label: "Differentiation",
     href: "/derivatives",
     sourceHref: "https://www.britannica.com/science/calculus-mathematics",
     sourceLabel: "Encyclopaedia Britannica, calculus",
-    description:
-      "A derivative describes how quickly a function changes at a specific point, which makes it useful for slopes, velocity, optimization, and sensitivity. In this app, the derivative solver is meant for expressions where you want to see how one variable responds as another variable moves. Britannica explains differential calculus as the part of calculus concerned with instantaneous rates of change and the slope of a curve at a point. Use this operation when the question is about change, steepness, tangent lines, or finding where a function increases and decreases.",
   },
   {
-    title: "Integral",
-    label: "Integration",
     href: "/integrals",
     sourceHref: "https://www.britannica.com/science/calculus-mathematics",
     sourceLabel: "Encyclopaedia Britannica, calculus",
-    description:
-      "An integral represents accumulation across an interval, so it is the operation to reach for when small pieces need to be added into a total. The integral solver supports the kind of thinking used for area under a curve, displacement from velocity, total growth, and other continuous quantities. Britannica describes integral calculus as summing infinitely many small parts to determine a whole, such as the area under a curve. Use this operation when the problem asks for a total amount, an antiderivative, or the effect of a function over a range.",
   },
   {
-    title: "Series",
-    label: "Convergence",
     href: "/series",
     sourceHref:
       "https://en.wikisource.org/wiki/1911_Encyclop%C3%A6dia_Britannica/Series",
     sourceLabel: "Encyclopaedia Britannica (1911), Series",
-    description:
-      "A mathematical series adds the terms of a sequence, often to understand whether infinitely many values still settle toward a finite answer. The series solver is designed for expressions with an index such as n, where the main question is whether the running sum stabilizes or grows without bound. For infinite series, Britannica describes convergence as the partial sums approaching a definite finite limit. Use this operation when the problem is about convergence, divergence, partial sums, or recognizing patterns in repeated addition.",
   },
 ];
 
 export default function Home() {
+  const { t } = useI18n();
+
   return (
     <>
       <Head>
-        <title>Math Solver</title>
-        <meta
-          name="description"
-          content="A Next.js math solver for derivatives, integrals, and series."
-        />
+        <title>{t.common.appName}</title>
+        <meta name="description" content={t.home.metaDescription} />
       </Head>
 
       <section className="page-header home-hero">
-        <h1>Math Solver</h1>
-        <p>
-          Enter calculus and series problems, choose the right solver, and get
-          a structured result from the app.
-        </p>
+        <h1>{t.common.appName}</h1>
+        <p>{t.home.intro}</p>
       </section>
 
-      <section className="cover-image-section" aria-label="Calculus terms cover">
-        <img
+      <section className="cover-image-section" aria-label={t.home.coverAria}>
+        <Image
           src="https://cdn.iacedcalculus.com/uploads/2024/08/Calculus-Terms-1024x791.png"
-          alt="Illustrated calculus terms reference chart"
+          alt={t.home.coverAlt}
+          width={1024}
+          height={791}
+          sizes="(max-width: 1072px) calc(100vw - 48px), 1024px"
+          preload
         />
       </section>
 
       <section className="definitions" aria-labelledby="definitions-heading">
         <div className="section-heading">
-          <p>Operations</p>
-          <h2 id="definitions-heading">What each solver means</h2>
+          <p>{t.home.operations}</p>
+          <h2 id="definitions-heading">{t.home.definitionsHeading}</h2>
         </div>
         <div className="definition-grid">
-          {operationDefinitions.map((operation) => (
-            <article className="definition-card" key={operation.title}>
-              <Link className="definition-card-link" href={operation.href}>
-                <span className="sr-only">Open {operation.title} solver</span>
-              </Link>
-              <div>
-                <p className="definition-label">{operation.label}</p>
-                <h3>{operation.title}</h3>
-                <p>{operation.description}</p>
-              </div>
-              <div className="definition-actions">
-                <a
-                  href={operation.sourceHref}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  Source: {operation.sourceLabel}
-                </a>
-              </div>
-            </article>
-          ))}
+          {operationLinks.map((link, index) => {
+            const operation = t.home.operationsList[index];
+
+            return (
+              <article className="definition-card" key={link.href}>
+                <Link className="definition-card-link" href={link.href}>
+                  <span className="sr-only">
+                    {t.home.openSolver(operation.title)}
+                  </span>
+                </Link>
+                <div>
+                  <p className="definition-label">{operation.label}</p>
+                  <h3>{operation.title}</h3>
+                  <p>{operation.description}</p>
+                </div>
+                <div className="definition-actions">
+                  <a href={link.sourceHref} rel="noreferrer" target="_blank">
+                    {t.home.source}: {link.sourceLabel}
+                  </a>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 
       <section className="manual">
-        <h2>User manual</h2>
+        <h2>{t.home.manualTitle}</h2>
         <ol>
-          <li>Choose a solver from the navigation bar.</li>
-          <li>Enter the math expression using variables like x or n.</li>
-          <li>Fill in extra options such as derivative order or integral bounds.</li>
-          <li>Submit the form to preview the request that will later be sent to the API.</li>
+          {t.home.manualSteps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
         </ol>
       </section>
     </>

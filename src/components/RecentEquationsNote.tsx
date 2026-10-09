@@ -1,3 +1,5 @@
+import { useI18n } from "@/lib/i18n";
+
 type RecentEquationsNoteProps = {
   equations: string[];
 };
@@ -5,9 +7,11 @@ type RecentEquationsNoteProps = {
 export default function RecentEquationsNote({
   equations,
 }: RecentEquationsNoteProps) {
+  const { t } = useI18n();
+
   return (
-    <aside className="sticky-note" aria-label="Recent equations">
-      <h2>Recent equations</h2>
+    <aside className="sticky-note" aria-label={t.common.recentEquations}>
+      <h2>{t.common.recentEquations}</h2>
       {equations.length > 0 ? (
         <ol>
           {equations.map((equation) => (
@@ -15,7 +19,7 @@ export default function RecentEquationsNote({
           ))}
         </ol>
       ) : (
-        <p>No equations yet.</p>
+        <p>{t.common.noEquations}</p>
       )}
     </aside>
   );

@@ -1,30 +1,37 @@
 import MathInput from "@/components/MathInput";
 import RecentEquationsNote from "@/components/RecentEquationsNote";
+import ResultPanel from "@/components/ResultPanel";
 import SolverNavigation from "@/components/SolverNavigation";
 import {
   readRecentEquations,
   rememberRecentEquation,
 } from "@/lib/recentEquations";
+import { useI18n } from "@/lib/i18n";
+import {
+  derivativeExamples,
+  pickRandomExample,
+} from "@/lib/solverExamples";
 import Head from "next/head";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 
 const DERIVATIVE_RECENT_KEY = "math-solver:recent-derivatives";
 
-const derivativeExamples = [
-  { expression: "x^3 + 2x", variable: "x", order: "1" },
-  { expression: "sin(x) + x^2", variable: "x", order: "1" },
-  { expression: "x^4 - 3x^2 + 7", variable: "x", order: "2" },
-  { expression: "e^x + 5x", variable: "x", order: "1" },
-];
+type DerivativeResult = {
+  expression: string;
+  order: number;
+  value: string;
+  variable: string;
+};
 
 export default function DerivativesPage() {
+  const { t } = useI18n();
   const [expression, setExpression] = useState("");
   const [variable, setVariable] = useState("x");
   const [order, setOrder] = useState("1");
   const [recentEquations, setRecentEquations] = useState<string[]>([]);
   const [error, setError] = useState("");
-  const [result, setResult] = useState("");
+  const [result, setResult] = useState<DerivativeResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -36,20 +43,19 @@ export default function DerivativesPage() {
   }, []);
 
   function handleGenerateExample() {
-    const example =
-      derivativeExamples[Math.floor(Math.random() * derivativeExamples.length)];
+    const example = pickRandomExample(derivativeExamples, expression);
 
     setExpression(example.expression);
     setVariable(example.variable);
     setOrder(example.order);
     setError("");
-    setResult("");
+    setResult(null);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    setResult("");
+    setResult(null);
     setLoading(true);
 
     const parsedOrder = Number(order);
@@ -57,19 +63,19 @@ export default function DerivativesPage() {
     const trimmedVariable = variable.trim();
 
     if (!trimmedExpression) {
-      setError("Enter a function before solving.");
+      setError(t.derivative.errors.expression);
       setLoading(false);
       return;
     }
 
     if (!trimmedVariable) {
-      setError("Enter the variable to differentiate by.");
+      setError(t.derivative.errors.variable);
       setLoading(false);
       return;
     }
 
     if (!Number.isInteger(parsedOrder) || parsedOrder < 1) {
-      setError("Derivative order must be a whole number greater than 0.");
+      setError(t.derivative.errors.order);
       setLoading(false);
       return;
     }
@@ -77,7 +83,9 @@ export default function DerivativesPage() {
     setRecentEquations(
       rememberRecentEquation(
         DERIVATIVE_RECENT_KEY,
-        `d^${parsedOrder}/d${trimmedVariable}^${parsedOrder} (${trimmedExpression})`,
+        parsedOrder === 1
+          ? `d/d${trimmedVariable} (${trimmedExpression})`
+          : `d^${parsedOrder}/d${trimmedVariable}^${parsedOrder} (${trimmedExpression})`,
       ),
     );
 
@@ -99,16 +107,17 @@ export default function DerivativesPage() {
       };
 
       if (!response.ok || !data.result) {
-        throw new Error(data.error || "Could not solve the derivative.");
+        throw new Error(t.derivative.errors.solve);
       }
 
-      setResult(
-        `d^${parsedOrder}/d${trimmedVariable}^${parsedOrder} (${trimmedExpression}) = ${data.result}`,
-      );
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Could not solve the derivative.",
-      );
+      setResult({
+        expression: trimmedExpression,
+        order: parsedOrder,
+        value: data.result,
+        variable: trimmedVariable,
+      });
+    } catch {
+      setError(t.derivative.errors.solve);
     } finally {
       setLoading(false);
     }
@@ -117,24 +126,22 @@ export default function DerivativesPage() {
   return (
     <>
       <Head>
-        <title>Derivative Solver | Math Solver</title>
+        <title>{t.derivative.pageTitle}</title>
       </Head>
 
       <section className="page-header">
-        <h1>Derivative Solver</h1>
-        <p>
-          Enter a function and choose which derivative order should be solved.
-        </p>
+        <h1>{t.derivative.heading}</h1>
+        <p>{t.derivative.intro}</p>
       </section>
 
       <SolverNavigation
-        previous={{ href: "/series", label: "Series" }}
-        next={{ href: "/integrals", label: "Integrals" }}
+        previous={{ href: "/series", label: t.common.series }}
+        next={{ href: "/integrals", label: t.common.integrals }}
       />
 
       <section className="solver-helper-row">
         <button type="button" className="example-button" onClick={handleGenerateExample}>
-          Generate example
+          {t.common.generateExample}
         </button>
         <RecentEquationsNote equations={recentEquations} />
       </section>
@@ -142,16 +149,16 @@ export default function DerivativesPage() {
       <form className="solver-form" onSubmit={handleSubmit}>
         <MathInput
           id="derivative-expression"
-          label="Function"
+          label={t.common.function}
           value={expression}
           onChange={(event) => setExpression(event.target.value)}
-          placeholder="Example: x^3 + 2x"
+          placeholder={`${t.common.example}: x^3 + 2x`}
           required
         />
         <div className="form-row">
           <MathInput
             id="derivative-variable"
-            label="Variable"
+            label={t.common.variable}
             value={variable}
             onChange={(event) => setVariable(event.target.value)}
             placeholder="x"
@@ -159,7 +166,7 @@ export default function DerivativesPage() {
           />
           <MathInput
             id="derivative-order"
-            label="Derivative order"
+            label={t.derivative.order}
             type="number"
             min={1}
             value={order}
@@ -171,15 +178,42 @@ export default function DerivativesPage() {
         {error && <p className="error-message">{error}</p>}
 
         <button type="submit" disabled={loading}>
-          {loading ? "Solving..." : "Solve derivative"}
+          {loading ? t.derivative.solving : t.derivative.solve}
         </button>
       </form>
 
       {result && (
-        <section className="result-panel" aria-live="polite">
-          <h2>Result</h2>
-          <p>{result}</p>
-        </section>
+        <ResultPanel
+          result={t.derivative.resultText(
+            result.order,
+            result.variable,
+            result.expression,
+            result.value,
+          )}
+        >
+          <span className="derivative-result">
+            <span
+              className="derivative-operator"
+              role="img"
+              aria-label={
+                result.order === 1
+                  ? `d/d${result.variable}`
+                  : `d^${result.order}/d${result.variable}^${result.order}`
+              }
+            >
+              <span aria-hidden="true">
+                d{result.order > 1 && <sup>{result.order}</sup>}
+              </span>
+              <span aria-hidden="true">
+                d{result.variable}
+                {result.order > 1 && <sup>{result.order}</sup>}
+              </span>
+            </span>
+            <span>({result.expression})</span>
+            <span className="derivative-equals">=</span>
+            <span className="derivative-answer">{result.value}</span>
+          </span>
+        </ResultPanel>
       )}
     </>
   );
