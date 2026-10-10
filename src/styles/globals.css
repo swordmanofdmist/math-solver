@@ -262,7 +262,18 @@ button:disabled {
 
 .definition-grid {
   display: grid;
-  gap: 16px;
+  gap: 24px;
+}
+
+.operation-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.operation-pair > * {
+  min-width: 0;
+  aspect-ratio: 1;
 }
 
 .solver-grid {
@@ -292,29 +303,204 @@ button:disabled {
 }
 
 .definition-card {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
   min-height: 0;
-  padding: 28px;
+  overflow: auto;
+  padding: clamp(20px, 3vw, 32px);
   background:
-    linear-gradient(90deg, rgba(201, 179, 88, 0.18), rgba(255, 255, 255, 0) 34%),
+    linear-gradient(135deg, rgba(201, 179, 88, 0.14), rgba(255, 255, 255, 0) 60%),
     var(--panel);
 }
 
-.definition-card-link {
-  position: absolute;
-  inset: 0;
+.operation-solver-button {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  border: 1px solid var(--brown);
   border-radius: 8px;
+  background: var(--brown);
+  color: var(--paper);
+  padding: 24px;
+  text-align: center;
 }
 
-.definition-card:hover,
+.operation-solver-button:hover,
 .solver-card:hover {
-  border-color: var(--ink);
+  border-color: var(--red);
   box-shadow: var(--shadow);
   transform: translateY(-3px);
+}
+
+.operation-surface-blackboard {
+  border: 8px solid #795438;
+  background:
+    radial-gradient(ellipse at 28% 35%, rgba(238, 239, 216, 0.07), transparent 55%),
+    radial-gradient(ellipse at 80% 75%, rgba(238, 239, 216, 0.05), transparent 48%),
+    repeating-linear-gradient(7deg, transparent 0 3px, rgba(255, 255, 255, 0.015) 3px 4px),
+    #20332d;
+  box-shadow: inset 0 0 0 2px #13251f, inset 0 0 32px rgba(0, 0, 0, 0.3);
+  color: #fff8e6;
+}
+
+.operation-surface-blackboard:hover {
+  border-color: #906544;
+}
+
+.operation-surface-squared-paper {
+  border-color: #cbd6df;
+  background:
+    linear-gradient(rgba(116, 155, 192, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(116, 155, 192, 0.22) 1px, transparent 1px),
+    #fffef9;
+  background-size: 24px 24px;
+  color: #373b40;
+  box-shadow: inset 0 0 30px rgba(169, 150, 105, 0.06);
+}
+
+.operation-surface-squared-paper::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 32px;
+  border-left: 1px solid rgba(204, 97, 97, 0.35);
+  content: "";
+  pointer-events: none;
+}
+
+.operation-surface-squared-paper:hover {
+  border-color: #879cb0;
+}
+
+.operation-surface-whiteboard {
+  border: 8px solid #b9c1c8;
+  background:
+    linear-gradient(125deg, rgba(255, 255, 255, 0.95) 15%, transparent 55%),
+    linear-gradient(160deg, #ffffff 45%, #edf1f4);
+  box-shadow: inset 0 0 0 2px #e0e5e9, inset 0 0 24px rgba(111, 128, 144, 0.1);
+  color: #21334b;
+}
+
+.operation-surface-whiteboard::after {
+  position: absolute;
+  right: 16%;
+  bottom: 0;
+  left: 16%;
+  height: 7px;
+  border: 1px solid #a6b0b9;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(#e7ebee, #bcc5cd);
+  content: "";
+  pointer-events: none;
+}
+
+.operation-surface-whiteboard:hover {
+  border-color: #909ea9;
+}
+
+.operation-solver-button:focus-visible,
+.definition-card:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 4px;
+}
+
+.operation-symbol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  width: 100%;
+  color: var(--gold);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(100px, 12vw, 160px);
+  line-height: 1;
+}
+
+.operation-symbol-drawing {
+  display: block;
+  width: min(100%, 360px);
+  height: clamp(120px, 32vw, 190px);
+  overflow: visible;
+}
+
+.symbol-formula {
+  display: none;
+}
+
+.symbol-stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.operation-symbol-chalk {
+  color: #fff8e6;
+}
+
+.operation-symbol-chalk .symbol-stroke {
+  stroke-width: 3.5;
+}
+
+.operation-symbol-pencil {
+  color: #484544;
+}
+
+.operation-symbol-pencil .symbol-stroke {
+  stroke-width: 3;
+}
+
+.operation-symbol-marker {
+  color: #163d75;
+}
+
+.operation-symbol-marker .symbol-stroke {
+  stroke-width: 7;
+}
+
+.operation-symbol-drawing .formula-stroke {
+  stroke-width: 2;
+}
+
+.operation-symbol-marker .formula-stroke {
+  stroke-width: 2.8;
+}
+
+.symbol-writing-tool {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operation-solver-button {
+    transition: none;
+  }
+
+  .operation-solver-button:hover {
+    transform: none;
+  }
+}
+
+.operation-button-title {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.operation-button-label {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.operation-button-label > span {
+  margin-left: 6px;
 }
 
 .definition-card h3,
@@ -340,13 +526,19 @@ button:disabled {
 .definition-card p {
   max-width: 780px;
   margin-bottom: 0;
-  font-size: 17px;
-  line-height: 1.7;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.definition-card .definition-label {
+  margin: 0 0 10px;
+  color: var(--olive);
+  font-size: 12px;
 }
 
 .definition-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .definition-actions a {
@@ -362,7 +554,6 @@ button:disabled {
   font-size: 13px;
   font-weight: 700;
   padding: 9px 12px;
-  white-space: nowrap;
 }
 
 .definition-actions a:hover {
@@ -834,12 +1025,11 @@ button:disabled {
 }
 
 @media (max-width: 900px) {
-  .definition-card {
-    grid-template-columns: 1fr;
-  }
-
-  .definition-actions {
-    justify-content: flex-start;
+  .operation-pair {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 560px;
+    width: 100%;
+    margin: 0 auto;
   }
 }
 

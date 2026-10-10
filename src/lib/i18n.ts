@@ -25,7 +25,7 @@ export const translations = {
       integrals: "Integrals",
       series: "Series",
       footer:
-        "Math Solver helps practice derivatives, integrals, and series. Built by Konstantin and Codex.",
+        "Math Solver helps practice derivatives, integrals, and series. Built by Konstantin.",
     },
     home: {
       metaDescription:
@@ -177,7 +177,7 @@ export const translations = {
       integrals: "Интеграли",
       series: "Редови",
       footer:
-        "Решавачот помага при вежбање изводи, интеграли и редови. Изработено од Константин и Codex.",
+        "Решавачот помага при вежбање изводи, интеграли и редови. Изработено од Константин.",
     },
     home: {
       metaDescription:

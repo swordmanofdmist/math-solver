@@ -1,21 +1,25 @@
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
+import AnimatedOperationSymbol from "@/components/AnimatedOperationSymbol";
 import { useI18n } from "@/lib/i18n";
 
 const operationLinks = [
   {
     href: "/derivatives",
+    surface: "blackboard",
     sourceHref: "https://www.britannica.com/science/calculus-mathematics",
     sourceLabel: "Encyclopaedia Britannica, calculus",
   },
   {
     href: "/integrals",
+    surface: "squared-paper",
     sourceHref: "https://www.britannica.com/science/calculus-mathematics",
     sourceLabel: "Encyclopaedia Britannica, calculus",
   },
   {
     href: "/series",
+    surface: "whiteboard",
     sourceHref:
       "https://en.wikisource.org/wiki/1911_Encyclop%C3%A6dia_Britannica/Series",
     sourceLabel: "Encyclopaedia Britannica (1911), Series",
@@ -58,22 +62,35 @@ export default function Home() {
             const operation = t.home.operationsList[index];
 
             return (
-              <article className="definition-card" key={link.href}>
-                <Link className="definition-card-link" href={link.href}>
-                  <span className="sr-only">
-                    {t.home.openSolver(operation.title)}
+              <article className="operation-pair" key={link.href}>
+                <div className="definition-card" tabIndex={0}>
+                  <div>
+                    <p className="definition-label">{operation.label}</p>
+                    <h3>{operation.title}</h3>
+                    <p>{operation.description}</p>
+                  </div>
+                  <div className="definition-actions">
+                    <a href={link.sourceHref} rel="noreferrer" target="_blank">
+                      {t.home.source}: {link.sourceLabel}
+                    </a>
+                  </div>
+                </div>
+                <Link
+                  className={`operation-solver-button operation-surface-${link.surface}`}
+                  href={link.href}
+                  aria-label={t.home.openSolver(operation.title)}
+                >
+                  <span className="operation-symbol" aria-hidden="true">
+                    <AnimatedOperationSymbol index={index} />
+                  </span>
+                  <span className="operation-button-title">
+                    {operation.title}
+                  </span>
+                  <span className="operation-button-label">
+                    {t.home.openSolver(operation.title)}{" "}
+                    <span aria-hidden="true">→</span>
                   </span>
                 </Link>
-                <div>
-                  <p className="definition-label">{operation.label}</p>
-                  <h3>{operation.title}</h3>
-                  <p>{operation.description}</p>
-                </div>
-                <div className="definition-actions">
-                  <a href={link.sourceHref} rel="noreferrer" target="_blank">
-                    {t.home.source}: {link.sourceLabel}
-                  </a>
-                </div>
               </article>
             );
           })}
